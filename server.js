@@ -40,23 +40,96 @@ inquirer.prompt ([
     }
 
 
-    // function viewAllRoles() {
+    function viewAllRoles() {
 
-    // }
+        db.query("SELECT * FROM employee_role", function (err, result) {
+            if (err) throw err;
+
+            return console.table(result);
+        })
+    }
 
 
-    // function viewAllEmployees() {
+    function viewAllEmployees() {
 
-    // }
+        db.query("SELECT * FROM employee", function (err, result) {
+            if (err) throw err;
+
+            return console.table(result);
+        })
+
+    }
 
 
-    // function addDepartment() {
+    function addDepartment() {
 
-    // }
+        inquirer.prompt([
+           {
+            type:"input",
+            name: "addDepartment",
+            message: "What is the name of your Department?"
+           }
 
-    // function addRole() {
+        ]).then(function(answer) {
+            db.query('INSERT INTO department SET ?', { department_name: answer.addDepartment}, function (err) {
+                if (err) throw err;
+                
+                return console.table(result);
+            });
+            return console.log("Department added!");
+        })
+            
+    }
 
-    // }
+    function addRole() {
+
+        inquirer.prompt([
+           { 
+            type:"input",
+            name: "roleTitle",
+            message: "Enter role title:"
+        },
+        {
+            type: "input",
+            name: "roleSalary",
+            message: "Enter salary for this role:"
+        },
+        {
+            type: "list",
+            name: "departmentChoice",
+            message: "Choose department assoiciated with this role",
+            choices: function () {
+
+                var arrChoices = [];
+
+                for (var i = 0; i < result.length; i++) {
+                    arrChoices.push(result[i].department_name);
+                }
+
+                return arrChoices;
+            }
+        }
+        
+        ]).then(function(answer) {
+            db.query("SELECT * FROM department WHERE ?", { department_name: answer.departmentChoice }, function (err, result) {
+                if (err) throw err;
+                console.log(result[0].id);
+
+                db.query("INSERT INTO employee_role SET ? ? ?", {
+                    title: answer.roleTitle,
+                    salary: parseInt(answer.roleSalary),
+                    department_id: parseInt(result[0].id)
+                });
+
+                return console.table(result);
+            })
+            console.log("Employee added!")
+        })
+        
+    }
+
+
+    roleOptions = ['Manager', 'Assistant Manager', 'Hostess', 'Server', 'Bartender', 'Buser', 'Head Chef', 'Line Cook', 'Prep', 'Dishwasher']
 
     function addEmployee(){
             inquirer.prompt([
@@ -72,13 +145,26 @@ inquirer.prompt ([
                 },
                 {
                     name: "roleChoice",
-
+                    type: "list",
+                    message: "Select the employee's role",
+                    choices: roleOptions
                 }
-            ]).then((data) => {
-                db.query("INSERT INTO * FROM employee_role", function (err, result) {
+            ]).then((answer) => {
+                db.query("SELECT * FROM employee_role WHERE ?", { title: answer.roleChoice }, function (err, result) {
                     if (err) throw err;
+
+                    db.query("INSERT INTO employee SET ? ? ?", {
+                        first_name: answer.firstName,
+                        last_name: answer.lastName,
+                        employee_role: answer.roleOptions
+                    });
+                    
+                    return console.table(result);
                 })
+                console.log("Employee added!")
             })
+
+            
     }
 
     // function updateEmployeeRole(){
