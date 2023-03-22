@@ -1,48 +1,86 @@
 const inquirer = require('inquirer');
-const mysql = require('mysql2');
 const cTable = require('console.table');
-const Connection = require('mysql2/typings/mysql/lib/Connection');
-// const connection = require('./db/connection');
+const {db} = require('./connection');
 
-const db = mysql.createConnection(
-    {
-      host: 'localhost',
-      // MySQL username,
-      user: 'root',
-      // MySQL password
-      password: 'Password123',
-      database: 'employee_db'
-    },
-    console.log(`Connected to the employee_db database.`)
-  );
-
+const options = ['View All Departments', 'View All Roles', 'View All Employees', 'Add a Department', 'Add a Role', 'Add an Employee', 'Update an Employee Role', 'Quit']
 
 inquirer.prompt ([
         {
             type: 'list',
             name: 'startQuestions',
             message: 'What would you like to do?',
-            choices: ['View All Departments', 'View All Roles', 'View All Employees', 'Add a Department', 'Add a Role', 'Add an Employee', 'Update an Employee Role', 'Quit']
+            choices: options
         }
     ]).then((answer) => {
-        if(answer = choices[0]){
+        if(answer == options[0]){
             viewAllDepartments();
-        } else if(answer = choices[1]){
+        } else if(answer == options[1]){
             viewAllRoles();
-        } else if(answer = choices[2]){
+        } else if(answer == options[2]){
             viewAllEmployees();
-        } else if(answer = choices[3]){
+        } else if(answer == options[3]){
             addDepartment();
-        } else if(answer = choices[4]){
+        } else if(answer == options[4]){
             addRole();
-        } else if(answer = choices[5]){
+        } else if(answer == options[5]){
             addEmployee();
-        } else if(answer = choices[6]){
+        } else if(answer == options[6]){
             updateEmployeeRole();
         } 
     });
 
-    function viewAllEmployees() {
-        var employeesArray = [];
-        var query = "SELECT employee.id, first_name, last_name, title, salary, department_name FROM employee JOIN employee_role ON (employee_role.id = employee_role.id) JOIN department ON (department.id = employee_role.department_id)";
+
+    function viewAllDepartments() {
+        
+        db.query("SELECT * FROM department", function (err, result) {
+            if (err) throw err;
+
+            return console.table(result);
+        })
     }
+
+
+    // function viewAllRoles() {
+
+    // }
+
+
+    // function viewAllEmployees() {
+
+    // }
+
+
+    // function addDepartment() {
+
+    // }
+
+    // function addRole() {
+
+    // }
+
+    function addEmployee(){
+            inquirer.prompt([
+                {
+                    name: "firstName",
+                    type:"input",
+                    message:"Enter the employee's First Name:"
+                },
+                {
+                    name: "lastName",
+                    type:"input",
+                    message:"Enter employee's Last Name:"
+                },
+                {
+                    name: "roleChoice",
+
+                }
+            ]).then((data) => {
+                db.query("INSERT INTO * FROM employee_role", function (err, result) {
+                    if (err) throw err;
+                })
+            })
+    }
+
+    // function updateEmployeeRole(){
+        
+    // }
