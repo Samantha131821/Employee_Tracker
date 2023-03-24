@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
 const cTable = require('console.table');
-const {db} = require('./connection');
+const mysql = require('mysql2');
+const db = require('./connection');
 
 const options = ['View All Departments', 'View All Roles', 'View All Employees', 'Add a Department', 'Add a Role', 'Add an Employee', 'Update an Employee Role', 'Quit']
 
@@ -12,19 +13,19 @@ inquirer.prompt ([
             choices: options
         }
     ]).then((answer) => {
-        if(answer == options[0]){
+        if(answer.startQuestions == options[0]){
             viewAllDepartments();
-        } else if(answer == options[1]){
+        } else if(answer.startQuestions == options[1]){
             viewAllRoles();
-        } else if(answer == options[2]){
+        } else if(answer.startQuestions == options[2]){
             viewAllEmployees();
-        } else if(answer == options[3]){
+        } else if(answer.startQuestions == options[3]){
             addDepartment();
-        } else if(answer == options[4]){
+        } else if(answer.startQuestions == options[4]){
             addRole();
-        } else if(answer == options[5]){
+        } else if(answer.startQuestions == options[5]){
             addEmployee();
-        } else if(answer == options[6]){
+        } else if(answer.startQuestions == options[6]){
             updateEmployeeRole();
         } 
     });
@@ -61,6 +62,7 @@ inquirer.prompt ([
     }
 
 
+
     function addDepartment() {
 
         inquirer.prompt([
@@ -71,10 +73,11 @@ inquirer.prompt ([
            }
 
         ]).then(function(answer) {
-            db.query('INSERT INTO department SET ?', { department_name: answer.addDepartment}, function (err) {
+            db.query('INSERT INTO department SET ?', 
+                
+            { department_name: answer.addDepartment}, function (err) {
                 if (err) throw err;
                 
-                return console.table(result);
             });
             return console.log("Department added!");
         })
@@ -82,12 +85,25 @@ inquirer.prompt ([
     }
 
     function addRole() {
+        const departmentChoices = []
 
+        db.query("SELECT * FROM department", function (err, result) {
+            if (err) throw err;
+
+
+
+            for (let i = 0; i < result.length; i++) {
+                departmentChoices.push(result[i].department_name);
+            }
+           
+        });
+        
         inquirer.prompt([
            { 
             type:"input",
             name: "roleTitle",
             message: "Enter role title:"
+
         },
         {
             type: "input",
@@ -98,38 +114,28 @@ inquirer.prompt ([
             type: "list",
             name: "departmentChoice",
             message: "Choose department assoiciated with this role",
-            choices: function () {
-
-                var arrChoices = [];
-
-                for (var i = 0; i < result.length; i++) {
-                    arrChoices.push(result[i].department_name);
-                }
-
-                return arrChoices;
-            }
+            choices: departmentChoices
         }
         
         ]).then(function(answer) {
-            db.query("SELECT * FROM department WHERE ?", { department_name: answer.departmentChoice }, function (err, result) {
+            db.query("SELECT * FROM department WHERE ?", 
+                { department_name: answer.departmentChoice }, function (err, result) {
                 if (err) throw err;
                 console.log(result[0].id);
 
-                db.query("INSERT INTO employee_role SET ? ? ?", {
+                db.query("INSERT INTO employee_role SET ?", {
                     title: answer.roleTitle,
                     salary: parseInt(answer.roleSalary),
                     department_id: parseInt(result[0].id)
                 });
 
-                return console.table(result);
             })
-            console.log("Employee added!")
+            console.log("Role added!")
         })
         
     }
 
 
-    roleOptions = ['Manager', 'Assistant Manager', 'Hostess', 'Server', 'Bartender', 'Buser', 'Head Chef', 'Line Cook', 'Prep', 'Dishwasher']
 
     function addEmployee(){
             inquirer.prompt([
@@ -153,7 +159,7 @@ inquirer.prompt ([
                 db.query("SELECT * FROM employee_role WHERE ?", { title: answer.roleChoice }, function (err, result) {
                     if (err) throw err;
 
-                    db.query("INSERT INTO employee SET ? ? ?", {
+                    db.query("INSERT INTO employee SET ?", {
                         first_name: answer.firstName,
                         last_name: answer.lastName,
                         employee_role: answer.roleOptions
@@ -167,6 +173,38 @@ inquirer.prompt ([
             
     }
 
-    // function updateEmployeeRole(){
-        
-    // }
+    function updateEmployeeRole(){
+        inquirer.prompt([
+            {
+                name: "employeeFirstName",
+                type:"input",
+                message:"Enter the employee's first name:"
+            },
+            {
+                name: "employeeLastName",
+                type:"input",
+                message:"Enter the employee's last name:"
+            },
+
+            {
+                name: "updateEmployeeRole",
+                type:"input",
+                message:"Enter the employee's new role:"
+            }
+
+        ]).then(function(answer) {
+            db.query("SELECT * FROM employee_role WHERE ?",
+            { title: answer.updateEmployeeRole}, function (err, result) {
+            if (err) throw err;
+
+
+                db.query("UPDATE employee SET role_id = ? WHERE first_name = ? AND last_name = ?", 
+                [result[0].id, answer.employeeFirstName, answer.last_name ],function (err, result) {
+                    if (err) throw err;
+            });
+        console.log("Updated Employee Role!")
+    
+        })
+
+    })
+}
