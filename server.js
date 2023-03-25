@@ -151,9 +151,8 @@ inquirer.prompt ([
                 },
                 {
                     name: "roleChoice",
-                    type: "list",
-                    message: "Select the employee's role",
-                    choices: roleOptions
+                    type: "input",
+                    message: "Enter the employee's role",
                 }
             ]).then((answer) => {
                 db.query("SELECT * FROM employee_role WHERE ?", { title: answer.roleChoice }, function (err, result) {
@@ -162,7 +161,7 @@ inquirer.prompt ([
                     db.query("INSERT INTO employee SET ?", {
                         first_name: answer.firstName,
                         last_name: answer.lastName,
-                        employee_role: answer.roleOptions
+                        role_id: result[0].id
                     });
                     
                     return console.table(result);
