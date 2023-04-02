@@ -75,7 +75,7 @@ inquirer.prompt ([
         ]).then(function(answer) {
             db.query('INSERT INTO department SET ?', 
                 
-            { department_name: answer.addDepartment}, function (err) {
+            { name: answer.addDepartment}, function (err) {
                 if (err) throw err;
                 
             });
